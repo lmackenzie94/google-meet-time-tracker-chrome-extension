@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "Meet Call Timer",
+  "version": "1.0",
+  "description": "Track the duration of Google Meet video calls.",
+  "permissions": ["tabs", "activeTab", "storage"],
+  "content_scripts": [
+    {
+      "matches": ["https://meet.google.com/*"],
+      "js": ["content.js"]
+    }
+  ],
+  "icons": {
+    "128": "icon.png"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": "icon.png"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}
