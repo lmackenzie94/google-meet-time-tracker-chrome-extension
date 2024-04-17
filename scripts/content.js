@@ -1,5 +1,3 @@
-// TODO: what happens if you open another tab with a Google Meet call while one is already in progress?
-
 const meetingDate = getDate();
 const meetingID = getMeetingID();
 let startTime = null;
