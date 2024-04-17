@@ -90,7 +90,17 @@ function displayRecentMeetings(meetings) {
         meeting.cumulativeDuration
       );
 
-      li.innerHTML = `<p class="has-background-light p-2 mb-1 is-size-7 is-flex is-justify-content-space-between is-align-items-center"><strong>${meeting.title}</strong> <span class="tag is-success ml-2 has-text-weight-semibold">${formattedDuration}</span></p>`;
+      li.innerHTML = `
+      <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
+        <div>
+          <p><strong>${meeting.title}</strong></p>
+          <p class="is-size-8 has-text-grey">
+            ${meeting.startTime} - ${meeting.endTime}
+          </p>
+        </div>
+        <span class="tag is-success ml-2 has-text-weight-semibold">${formattedDuration}</span>
+      </div>`;
+
       ul.appendChild(li);
     });
 
@@ -159,7 +169,8 @@ function formatMeetingDuration(durationInSeconds) {
   // minutes
   if (durationInSeconds >= 60) {
     const minutes = Math.floor(durationInSeconds / 60);
-    return `${minutes}m`;
+    const seconds = durationInSeconds % 60;
+    return `${minutes}m ${seconds}s`;
   }
 
   // seconds

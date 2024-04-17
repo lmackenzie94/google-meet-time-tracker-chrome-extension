@@ -1,6 +1,7 @@
 const meetingDate = getDate();
 const meetingID = getMeetingID();
 let startTime = null;
+let endTime = null;
 let meetingTitle = null;
 
 function startTimer() {
@@ -9,11 +10,14 @@ function startTimer() {
 }
 
 function stopTimer() {
+  endTime = new Date().getTime();
+
   saveMeeting({
     id: meetingID,
     title: meetingTitle,
     date: meetingDate,
-    duration: getMeetingDurationInSeconds(startTime),
+    duration: getMeetingDurationInSeconds(startTime, endTime),
+    endTime: formatTime(endTime),
     status: 'completed'
   });
 }
@@ -87,8 +91,7 @@ function getMeetingID() {
   }
 }
 
-function getMeetingDurationInSeconds(startTime) {
-  const endTime = new Date().getTime();
+function getMeetingDurationInSeconds(startTime, endTime) {
   const durationInSeconds = ((endTime - startTime) / 1000).toFixed(0);
 
   // convert to number
