@@ -133,26 +133,35 @@ function clearRecentMeetings() {
       return;
     }
 
-    // get the in progress meetings (we don't want to clear them)
-    const meetingsCompleted = data.recentMeetings.filter(
+    // get the in-progress meetings (we don't want to clear them)
+    const meetingsInProgress = data.recentMeetings.filter(
       meeting => meeting.status === 'in-progress'
     );
 
     // set the recent meetings to only the in progress meetings
-    chrome.storage.sync.set({ recentMeetings: meetingsCompleted });
+    chrome.storage.sync.set({ recentMeetings: meetingsInProgress });
+
+    // remove badge
+    chrome.action.setBadgeText({ text: '' });
 
     refreshMeetings();
   });
 }
 
 function formatMeetingDuration(durationInSeconds) {
-  // TODO: account for hours
+  // hours
+  if (durationInSeconds >= 3600) {
+    const hours = Math.floor(durationInSeconds / 3600);
+    const minutes = Math.floor((durationInSeconds % 3600) / 60);
+    return `${hours}h ${minutes}m`;
+  }
+
+  // minutes
   if (durationInSeconds >= 60) {
     const minutes = Math.floor(durationInSeconds / 60);
-    const seconds = durationInSeconds % 60;
-    duration = `${minutes}m ${seconds}s`;
-  } else {
-    duration = `${durationInSeconds}s`;
+    return `${minutes}m`;
   }
-  return duration;
+
+  // seconds
+  return `${durationInSeconds}s`;
 }

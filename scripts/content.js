@@ -1,3 +1,5 @@
+// TODO: what happens if you open another tab with a Google Meet call while one is already in progress?
+
 const meetingDate = getDate();
 const meetingID = getMeetingID();
 let startTime = null;
@@ -64,10 +66,23 @@ async function getMeetingTitle() {
 function getMeetingID() {
   // div with data-meeting-code attribute
   const meetingIDDiv = document.querySelector('div[data-meeting-code]');
+
+  // have to add date-stamp to meeting ID to make it unique (since the same meeting ID can be reused)
+
   if (meetingIDDiv) {
     const meetingID = meetingIDDiv.getAttribute('data-meeting-code');
-    console.log('Meeting ID: ', meetingID);
-    return meetingID;
+
+    // dateStamp - ex. 04172024
+    const dateStamp = new Date().toLocaleDateString('en-US', {
+      month: '2-digit',
+      day: '2-digit',
+      year: 'numeric'
+    });
+
+    const uniqueMeetingID = `${meetingID}-${dateStamp}`;
+    console.log('Unique Meeting ID: ', uniqueMeetingID);
+
+    return uniqueMeetingID;
   } else {
     console.log('Meeting ID not found. Retrying in 1 second');
     setTimeout(getMeetingID, 1000);

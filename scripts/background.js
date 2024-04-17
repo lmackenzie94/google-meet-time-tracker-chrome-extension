@@ -1,3 +1,7 @@
+chrome.runtime.onInstalled.addListener(function () {
+  setBadgeText();
+});
+
 // Listen for a new meeting and add it to recentMeetings
 chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
   if (request.action === 'saveMeeting') {
@@ -49,6 +53,8 @@ chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
       }
 
       chrome.storage.sync.set({ recentMeetings: recentMeetings });
+
+      setBadgeText();
     });
   }
 });
@@ -58,4 +64,22 @@ function getCumulativeDuration(existingMeeting, newMeeting) {
   const newDuration = newMeeting.duration;
 
   return currentCumulativeDuration + newDuration;
+}
+
+function setBadgeText() {
+  chrome.storage.sync.get('recentMeetings', function (data) {
+    const recentMeetings = data.recentMeetings || [];
+    const completedMeetings = recentMeetings.filter(
+      m => m.status === 'completed'
+    );
+
+    if (completedMeetings.length) {
+      chrome.action.setBadgeText({
+        text: completedMeetings.length.toString()
+      });
+    } else {
+      // remove the badge if there are no completed meetings
+      chrome.action.setBadgeText({ text: '' });
+    }
+  });
 }
