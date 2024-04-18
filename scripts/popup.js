@@ -91,12 +91,17 @@ function displayRecentMeetings(meetings) {
       const li = document.createElement('li');
       const formattedDuration = formatMeetingDuration(meeting.duration);
 
+      const meetingTime =
+        meeting.startTime !== meeting.endTime
+          ? `${meeting.startTime} - ${meeting.endTime}`
+          : meeting.startTime;
+
       li.innerHTML = `
       <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
         <div>
           <p><strong>${meeting.title}</strong></p>
           <p class="is-size-8 has-text-grey">
-            ${meeting.startTime} - ${meeting.endTime}
+            ${meetingTime}
           </p>
         </div>
         <span class="tag is-success ml-2 has-text-weight-semibold">${formattedDuration}</span>
