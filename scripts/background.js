@@ -1,3 +1,9 @@
+//! ideally move this to a constants file but couldn't figure out how to get import/export working
+const MEETING_STATUS = {
+  IN_PROGRESS: 'in-progress',
+  COMPLETED: 'completed'
+};
+
 chrome.runtime.onInstalled.addListener(async function () {
   const recentMeetings = await getRecentMeetings();
   setBadgeText(recentMeetings);
@@ -48,8 +54,17 @@ function setRecentMeetings(recentMeetings) {
 }
 
 function setBadgeText(recentMeetings) {
+  const meetingIsInProgress = recentMeetings.some(
+    m => m.status === MEETING_STATUS.IN_PROGRESS
+  );
+
+  if (meetingIsInProgress) {
+    chrome.action.setBadgeText({ text: '🔴' });
+    return;
+  }
+
   const completedMeetings = recentMeetings.filter(
-    m => m.status === 'completed'
+    m => m.status === MEETING_STATUS.COMPLETED
   );
 
   if (completedMeetings.length) {

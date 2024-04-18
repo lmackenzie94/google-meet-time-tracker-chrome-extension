@@ -1,3 +1,9 @@
+//! ideally move this to a constants file but couldn't figure out how to get import/export working
+const MEETING_STATUS = {
+  IN_PROGRESS: 'in-progress',
+  COMPLETED: 'completed'
+};
+
 class Meeting {
   meetingInfo = {
     id: null,
@@ -169,7 +175,7 @@ class Meeting {
       this.meetingInfo.startTime = this.timer.startTimeFormatted;
     }
 
-    this.meetingInfo.status = 'in-progress';
+    this.meetingInfo.status = MEETING_STATUS.IN_PROGRESS;
     this.meetingInfo.title = await this.getMeetingTitle();
     this.save();
     this.waitForMeetingEnd();
@@ -188,7 +194,7 @@ class Meeting {
       this.meetingInfo.duration += duration;
     }
 
-    this.meetingInfo.status = 'completed';
+    this.meetingInfo.status = MEETING_STATUS.COMPLETED;
     this.save();
   }
 
