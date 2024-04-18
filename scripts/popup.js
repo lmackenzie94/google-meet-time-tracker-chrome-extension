@@ -65,6 +65,7 @@ function displayRecentMeetings(meetings) {
 
   const meetingsByDate = groupMeetingsByDate(meetingsCompleted);
 
+  let index = 0;
   for (const date in meetingsByDate) {
     // Date header
     const dateHeader = document.createElement('p');
@@ -73,8 +74,10 @@ function displayRecentMeetings(meetings) {
       'has-text-weight-bold',
       'mb-1',
       'is-size-7',
-      'has-text-link'
+      'has-text-link',
+      index === 0 ? 'mt-0' : 'mt-4'
     );
+    index++;
 
     recentMeetingsList.appendChild(dateHeader);
 
@@ -86,9 +89,7 @@ function displayRecentMeetings(meetings) {
     const ul = document.createElement('ul');
     meetings.forEach(meeting => {
       const li = document.createElement('li');
-      const formattedDuration = formatMeetingDuration(
-        meeting.cumulativeDuration
-      );
+      const formattedDuration = formatMeetingDuration(meeting.duration);
 
       li.innerHTML = `
       <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
