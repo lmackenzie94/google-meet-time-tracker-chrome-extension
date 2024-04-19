@@ -54,10 +54,6 @@ class Meeting {
   // checks if user is re-joining the same meeting
   getExistingMeeting(id) {
     console.log('Checking for existing meeting with ID: ', id);
-    return this.getMeeting(id);
-  }
-
-  getMeeting(id) {
     return new Promise(resolve => {
       chrome.storage.sync.get('recentMeetings', function (data) {
         const recentMeetings = data.recentMeetings || [];
@@ -200,18 +196,6 @@ class Meeting {
       this.meetingInfo.duration = duration;
     } else {
       this.meetingInfo.duration += duration;
-    }
-
-    // check if user changed the meeting title
-    const savedMeetingInfo = await this.getMeeting(this.meetingInfo.id);
-
-    if (savedMeetingInfo && savedMeetingInfo.title !== this.meetingInfo.title) {
-      console.log(
-        'Title changed: ',
-        savedMeetingInfo.title,
-        this.meetingInfo.title
-      );
-      this.meetingInfo.title = savedMeetingInfo.title;
     }
 
     this.meetingInfo.status = MEETING_STATUS.COMPLETED;

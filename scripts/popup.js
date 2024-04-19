@@ -219,18 +219,5 @@ function saveTitle(newTitle, meetingId) {
     return;
   }
 
-  chrome.storage.sync.get('recentMeetings', function (data) {
-    const recentMeetings = data.recentMeetings || [];
-
-    const updatedMeetings = recentMeetings.map(meeting => {
-      if (meeting.id === meetingId) {
-        meeting.title = newTitle;
-      }
-      return meeting;
-    });
-
-    chrome.storage.sync.set({ recentMeetings: updatedMeetings });
-
-    console.log(`Updated title for meeting ID ${meetingId}: ${newTitle}`);
-  });
+  chrome.runtime.sendMessage({ action: 'updateTitle', meetingId, newTitle });
 }

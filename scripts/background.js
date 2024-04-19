@@ -16,6 +16,28 @@ chrome.runtime.onMessage.addListener(async function (request) {
     const recentMeetings = await saveMeeting(request.meeting);
     setBadgeText(recentMeetings);
   }
+
+  // update title
+  if (request.action === 'updateTitle') {
+    const recentMeetings = await getRecentMeetings();
+
+    // find the meeting to update
+    const meetingToUpdate = recentMeetings.find(
+      m => m.id === request.meetingId
+    );
+
+    if (meetingToUpdate) {
+      console.log(
+        `Updating title for meeting: ${meetingToUpdate.id} to ${request.newTitle}`
+      );
+      const index = recentMeetings.indexOf(meetingToUpdate);
+      const updatedMeeting = { ...meetingToUpdate, title: request.newTitle };
+
+      recentMeetings[index] = updatedMeeting;
+
+      setRecentMeetings(recentMeetings);
+    }
+  }
 });
 
 async function saveMeeting(newMeeting) {
@@ -29,6 +51,9 @@ async function saveMeeting(newMeeting) {
 
     // update the existing meeting
     recentMeetings[index] = newMeeting;
+
+    // always use the title from the existing meeting
+    recentMeetings[index].title = existingMeeting.title;
   } else {
     // add the new meeting
     recentMeetings.push(newMeeting);
