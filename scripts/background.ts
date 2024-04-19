@@ -1,8 +1,7 @@
-//! ideally move this to a constants file but couldn't figure out how to get import/export working
-const MEETING_STATUS = {
-  IN_PROGRESS: 'in-progress',
-  COMPLETED: 'completed'
-};
+// import { MEETING_STATUS } from '../types';
+// import type { MeetingDetails } from '../types';
+
+import { MEETING_STATUS, MeetingDetails } from '../types';
 
 chrome.runtime.onInstalled.addListener(async function () {
   const recentMeetings = await getRecentMeetings();
@@ -40,7 +39,9 @@ chrome.runtime.onMessage.addListener(async function (request) {
   }
 });
 
-async function saveMeeting(newMeeting) {
+async function saveMeeting(
+  newMeeting: MeetingDetails
+): Promise<MeetingDetails[]> {
   const recentMeetings = await getRecentMeetings();
 
   // check if the meeting is already in the list
@@ -64,7 +65,7 @@ async function saveMeeting(newMeeting) {
   return recentMeetings;
 }
 
-function getRecentMeetings() {
+function getRecentMeetings(): Promise<MeetingDetails[]> {
   return new Promise(resolve => {
     chrome.storage.sync.get('recentMeetings', function (data) {
       const recentMeetings = data.recentMeetings || [];
@@ -74,11 +75,11 @@ function getRecentMeetings() {
   });
 }
 
-function setRecentMeetings(recentMeetings) {
+function setRecentMeetings(recentMeetings: MeetingDetails[]): void {
   chrome.storage.sync.set({ recentMeetings: recentMeetings });
 }
 
-function setBadgeText(recentMeetings) {
+function setBadgeText(recentMeetings: MeetingDetails[]): void {
   const meetingIsInProgress = recentMeetings.some(
     m => m.status === MEETING_STATUS.IN_PROGRESS
   );

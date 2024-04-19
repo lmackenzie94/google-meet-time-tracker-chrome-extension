@@ -1,23 +1,37 @@
-//! ideally move this to a constants file but couldn't figure out how to get import/export working
-const MEETING_STATUS = {
-  IN_PROGRESS: 'in-progress',
-  COMPLETED: 'completed'
-};
+import { MEETING_STATUS, MeetingDetails } from '../types';
+
+//! If I defined these here and imported in other files, the entire contents of this file would be bundled into the other files (i.e. they'd all contain the Meeting class, Timer class, etc.).
+// export enum MEETING_STATUS {
+//   IN_PROGRESS = 'in-progress',
+//   COMPLETED = 'completed'
+// }
+
+// export type MeetingDetails = {
+//   id: string;
+//   title: string;
+//   date: string;
+//   startTime: string;
+//   endTime: string;
+//   duration: number;
+//   status: MEETING_STATUS;
+// };
 
 class Meeting {
-  meetingInfo = {
-    id: null,
-    date: null,
-    title: null,
-    status: null,
-    startTime: null,
-    endTime: null,
-    duration: null
+  meetingDetails: MeetingDetails = {
+    id: '',
+    date: '',
+    title: '',
+    status: MEETING_STATUS.IN_PROGRESS,
+    startTime: '',
+    endTime: '',
+    duration: 0
   };
 
+  timer: Timer;
+
   constructor() {
-    this.meetingInfo.id = this.getID();
-    this.meetingInfo.date = this.getDate();
+    this.meetingDetails.id = this.getID();
+    this.meetingDetails.date = this.getDate();
 
     this.timer = new Timer();
 
@@ -34,30 +48,34 @@ class Meeting {
     console.log('Meeting initialized');
 
     // check if the meeting already exists
-    const existingMeeting = await this.getExistingMeeting(this.meetingInfo.id);
+    const existingMeeting = await this.getExistingMeeting(
+      this.meetingDetails.id
+    );
 
     if (existingMeeting) {
       console.log('Existing meeting found: ', existingMeeting);
-      this.meetingInfo = existingMeeting;
+      this.meetingDetails = existingMeeting;
     } else {
       console.log('No existing meeting found. Starting new meeting...');
     }
 
     try {
       const joinButton = this.getJoinNowButton();
-      joinButton.addEventListener('click', this.start);
+      joinButton?.addEventListener('click', this.start);
     } catch (error) {
       console.error('Error initializing meeting: ', error);
     }
   }
 
   // checks if user is re-joining the same meeting
-  getExistingMeeting(id) {
+  getExistingMeeting(id: string): Promise<MeetingDetails> {
     console.log('Checking for existing meeting with ID: ', id);
     return new Promise(resolve => {
       chrome.storage.sync.get('recentMeetings', function (data) {
         const recentMeetings = data.recentMeetings || [];
-        const meeting = recentMeetings.find(m => m.id === id);
+        const meeting = recentMeetings.find(
+          (meeting: MeetingDetails) => meeting.id === id
+        );
 
         resolve(meeting);
       });
@@ -66,12 +84,11 @@ class Meeting {
 
   getDate() {
     const date = new Date();
-    const options = { weekday: 'long', month: 'long', day: 'numeric' };
-    console.log('Date: ', date.toLocaleDateString('en-US', options));
+    const options: any = { weekday: 'long', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
   }
 
-  getID() {
+  getID(retries = 0): string {
     // div with data-meeting-code attribute
     const meetingIDDiv = document.querySelector('div[data-meeting-code]');
 
@@ -91,14 +108,25 @@ class Meeting {
 
       return uniqueMeetingID;
     } else {
+      retries++;
+      if (retries >= 5) {
+        // TODO: do this properly
+        return 'abc123';
+      }
+
       console.log('Meeting ID not found. Retrying in 1 second');
-      setTimeout(this.getID, 1000);
+      setTimeout(() => {
+        this.getID(retries);
+      }, 1000);
+
+      return '';
     }
   }
 
   getJoinNowButton() {
     // find element with text content of "Join now"
-    let joinNowSpan = null;
+    let joinNowSpan: any;
+
     document.querySelectorAll('span').forEach(span => {
       if (span.textContent === 'Join now') {
         joinNowSpan = span;
@@ -118,10 +146,10 @@ class Meeting {
     }
   }
 
-  getLeaveButton() {
+  getLeaveButton(): Promise<HTMLButtonElement> {
     const leaveButton = document.querySelector(
       'button[aria-label="Leave call"]'
-    );
+    ) as HTMLButtonElement;
 
     if (leaveButton) {
       return Promise.resolve(leaveButton);
@@ -135,10 +163,10 @@ class Meeting {
     }
   }
 
-  getMeetingTitle() {
-    if (this.meetingInfo.title) {
-      console.log('Meeting title already exists: ', this.meetingInfo.title);
-      return Promise.resolve(this.meetingInfo.title);
+  getMeetingTitle(retries = 0): Promise<string> {
+    if (this.meetingDetails.title) {
+      console.log('Meeting title already exists: ', this.meetingDetails.title);
+      return Promise.resolve(this.meetingDetails.title);
     }
 
     const meetingTitleDiv = document.querySelector('div[data-meeting-title]');
@@ -146,12 +174,23 @@ class Meeting {
     return new Promise((resolve, reject) => {
       if (meetingTitleDiv) {
         const meetingTitle = meetingTitleDiv.getAttribute('data-meeting-title');
-        console.log('Meeting title found: ', meetingTitle);
-        resolve(meetingTitle);
+        if (meetingTitle) {
+          console.log('Meeting title found: ', meetingTitle);
+          resolve(meetingTitle);
+        } else {
+          console.error('Meeting title is null');
+          reject('Meeting title is null');
+        }
       } else {
-        console.log('Meeting title not found. Retrying in 1 second');
+        retries++;
+        if (retries >= 5) {
+          console.error('Meeting title element not found');
+          reject('Meeting title element not found');
+        }
+
+        console.log('Meeting title element not found. Retrying in 1 second');
         setTimeout(() => {
-          this.getMeetingTitle().then(resolve);
+          this.getMeetingTitle(retries).then(resolve);
         }, 1000);
       }
     });
@@ -175,68 +214,68 @@ class Meeting {
     this.timer.start();
 
     // if the meeting is re-joined, use the initial start time
-    if (!this.meetingInfo.startTime) {
-      this.meetingInfo.startTime = this.timer.startTimeFormatted;
+    if (!this.meetingDetails.startTime) {
+      this.meetingDetails.startTime = this.timer.startTimeFormatted;
     }
 
-    this.meetingInfo.status = MEETING_STATUS.IN_PROGRESS;
-    this.meetingInfo.title = await this.getMeetingTitle();
+    this.meetingDetails.status = MEETING_STATUS.IN_PROGRESS;
+    this.meetingDetails.title = await this.getMeetingTitle();
     this.save();
     this.waitForMeetingEnd();
   }
 
   async end() {
     this.timer.stop();
-    this.meetingInfo.endTime = this.timer.endTimeFormatted;
+    this.meetingDetails.endTime = this.timer.endTimeFormatted;
 
     const duration = this.timer.getDurationInSeconds();
 
     // if re-joining the same meeting, add the new duration to the existing duration
-    if (!this.meetingInfo.duration) {
-      this.meetingInfo.duration = duration;
+    if (!this.meetingDetails.duration) {
+      this.meetingDetails.duration = duration;
     } else {
-      this.meetingInfo.duration += duration;
+      this.meetingDetails.duration += duration;
     }
 
-    this.meetingInfo.status = MEETING_STATUS.COMPLETED;
+    this.meetingDetails.status = MEETING_STATUS.COMPLETED;
     this.save();
   }
 
   save() {
-    console.log('Saving meeting: ', this.meetingInfo);
+    console.log('Saving meeting: ', this.meetingDetails);
 
     chrome.runtime.sendMessage({
       action: 'saveMeeting',
-      meeting: this.meetingInfo
+      meeting: this.meetingDetails
     });
   }
 }
 
 class Timer {
-  startTime = null;
-  startTimeFormatted = null;
-  endTime = null;
-  endTimeFormatted = null;
+  startTime: number = 0;
+  startTimeFormatted: string = '';
+  endTime: number = 0;
+  endTimeFormatted: string = '';
 
-  start() {
+  start(): void {
     this.startTime = new Date().getTime();
     this.startTimeFormatted = this.formatTime(this.startTime);
   }
 
-  stop() {
+  stop(): void {
     this.endTime = new Date().getTime();
     this.endTimeFormatted = this.formatTime(this.endTime);
   }
 
-  getDuration() {
+  getDuration(): number {
     return this.endTime - this.startTime;
   }
 
-  getDurationInSeconds() {
+  getDurationInSeconds(): number {
     return parseInt((this.getDuration() / 1000).toFixed(0));
   }
 
-  formatTime(time) {
+  formatTime(time: number): string {
     // ex: 10:30 AM
     const date = new Date(time);
     const hours = date.getHours();
@@ -262,7 +301,7 @@ window.addEventListener('load', () => {
 });
 
 // validate URL (must contain meeting code (ex. xxx-xxxx-xxx)
-function isValidMeetURL(url) {
+function isValidMeetURL(url: string): boolean {
   const regex = /meet.google.com\/[a-z]{3}-[a-z]{4}-[a-z]{3}/;
   return regex.test(url);
 }

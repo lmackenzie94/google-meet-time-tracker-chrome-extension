@@ -1,20 +1,30 @@
+import { MEETING_STATUS, MeetingDetails } from '../types';
+
 document.addEventListener('DOMContentLoaded', function () {
   // Load recent meetings from storage
   refreshMeetings();
 
   // Add event listener to clear recent meetings button
-  const clearButton = document.getElementById('clearRecentMeetings');
-  clearButton.addEventListener('click', clearRecentMeetings);
+  const clearButton = document.getElementById(
+    'clearRecentMeetings'
+  ) as HTMLButtonElement;
+  clearButton?.addEventListener('click', clearRecentMeetings);
 });
 
-function displayMeetingsInProgress(meetings) {
+function displayMeetingsInProgress(meetings: MeetingDetails[]): void {
   // clear the list
   const meetingsInProgressList = document.getElementById('meetingsInProgress');
+
+  if (!meetingsInProgressList) {
+    console.error('Meetings in progress list not found');
+    return;
+  }
+
   meetingsInProgressList.innerHTML = '';
 
   // filter the meetings that are in progress
   const meetingsInProgress = meetings.filter(
-    meeting => meeting.status === 'in-progress'
+    meeting => meeting.status === MEETING_STATUS.IN_PROGRESS
   );
 
   if (meetingsInProgress.length === 0) return;
@@ -40,14 +50,20 @@ function displayMeetingsInProgress(meetings) {
   meetingsInProgressList.appendChild(container);
 }
 
-function displayRecentMeetings(meetings) {
+function displayRecentMeetings(meetings: MeetingDetails[]): void {
   // clear the list
   const recentMeetingsList = document.getElementById('recentMeetings');
+
+  if (!recentMeetingsList) {
+    console.error('Recent meetings list not found');
+    return;
+  }
+
   recentMeetingsList.innerHTML = '';
 
   // filter the meetings that are completed
   const meetingsCompleted = meetings.filter(
-    meeting => meeting.status === 'completed'
+    meeting => meeting.status === MEETING_STATUS.COMPLETED
   );
 
   if (meetingsCompleted.length === 0) {
@@ -115,7 +131,7 @@ function displayRecentMeetings(meetings) {
   }
 }
 
-function refreshMeetings() {
+function refreshMeetings(): void {
   chrome.storage.sync.get('recentMeetings', function (data) {
     const recentMeetings = data.recentMeetings || [];
 
@@ -125,16 +141,16 @@ function refreshMeetings() {
   });
 }
 
-function groupMeetingsByDate(meetings) {
+function groupMeetingsByDate(meetings: MeetingDetails[]) {
   return meetings.reduce((acc, meeting) => {
     const date = meeting.date;
     acc[date] = acc[date] || [];
     acc[date].push(meeting);
     return acc;
-  }, {});
+  }, {} as Record<string, MeetingDetails[]>); // Add index signature to the type of acc
 }
 
-function clearRecentMeetings() {
+function clearRecentMeetings(): void {
   // alert to confirm the user wants to clear the recent meetings
   const confirmClear = confirm(
     'Are you sure you want to clear your meeting history? This action cannot be undone.'
@@ -152,7 +168,7 @@ function clearRecentMeetings() {
 
     // get the in-progress meetings (we don't want to clear them)
     const meetingsInProgress = data.recentMeetings.filter(
-      meeting => meeting.status === 'in-progress'
+      (meeting: MeetingDetails) => meeting.status === MEETING_STATUS.IN_PROGRESS
     );
 
     // set the recent meetings to only the in progress meetings
@@ -165,7 +181,7 @@ function clearRecentMeetings() {
   });
 }
 
-function formatMeetingDuration(durationInSeconds) {
+function formatMeetingDuration(durationInSeconds: number): string {
   // hours
   if (durationInSeconds >= 3600) {
     const hours = Math.floor(durationInSeconds / 3600);
@@ -184,20 +200,23 @@ function formatMeetingDuration(durationInSeconds) {
   return `${durationInSeconds}s`;
 }
 
-function makeTitlesEditable() {
+function makeTitlesEditable(): void {
   console.log('Making titles editable...');
-  const titles = document.querySelectorAll('#meeting-title');
+
+  const titles = document.querySelectorAll(
+    '#meeting-title'
+  ) as NodeListOf<HTMLElement>;
 
   titles.forEach(title => {
     const currentTitle = title.textContent;
 
     title.addEventListener('click', () => {
-      title.setAttribute('contenteditable', true);
+      title.setAttribute('contenteditable', 'true');
       title.focus();
     });
 
     title.addEventListener('blur', () => {
-      title.setAttribute('contenteditable', false);
+      title.setAttribute('contenteditable', 'false');
       title.focus();
 
       const newTitle = title.textContent;
@@ -208,12 +227,14 @@ function makeTitlesEditable() {
         return;
       }
 
-      saveTitle(newTitle, meetingId);
+      if (newTitle && meetingId) {
+        saveTitle(newTitle, meetingId);
+      }
     });
   });
 }
 
-function saveTitle(newTitle, meetingId) {
+function saveTitle(newTitle: string, meetingId: string): void {
   if (!newTitle.trim() || !meetingId) {
     console.error('Invalid title or meeting ID');
     return;
