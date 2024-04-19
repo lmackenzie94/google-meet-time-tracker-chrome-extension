@@ -1,50 +1,40 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Time Tracker</title>
-    <script src="../dist/popup.js" defer></script>
-    <link
-      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css"
-      rel="stylesheet"
-    />
-    <link rel="stylesheet" href="./popup.css" />
-  </head>
-  <body>
-    <div class="has-background-info-light py-3 mb-0">
-      <h1
-        class="is-size-5 is-uppercase is-flex is-align-items-center pl-4 pr-4 has-text-black has-text-weight-bold is-justify-content-space-between"
-      >
-        Time Tracker
-        <img
-          class="meet-icon"
-          src="../assets/meet-icon.svg"
-          alt="Google Meet Icon"
-        />
-      </h1>
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Time Tracker</title>
+  <script src="../dist/popup.js" defer></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.9.3/css/bulma.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="./popup.css" />
+</head>
+
+<body>
+  <div class="has-background-info-light py-3 mb-0">
+    <h1 class="is-size-5 is-uppercase is-flex is-align-items-center pl-4 pr-4 has-text-black has-text-weight-bold is-justify-content-space-between">
+      Time Tracker
+      <img class="meet-icon" src="../assets/meet-icon.svg" alt="Google Meet Icon" />
+    </h1>
+  </div>
+
+  <div id="meetingsInProgress"></div>
+
+  <main class="p-4">
+    <div class="block">
+      <div id="completedMeetings"></div>
     </div>
 
-    <div id="meetingsInProgress"></div>
+    <div class="block is-flex is-justify-content-center">
+      <button id="clearCompletedMeetings" class="button is-danger is-small has-text-weight-bold" type="button">
+        Clear Meeting History
+      </button>
+    </div>
+  </main>
 
-    <main class="p-4">
-      <div class="block">
-        <div id="recentMeetings"></div>
-      </div>
+  <footer class="has-background-info-light px-4 py-1">
+    <p class="is-size-8">* change the meeting title by clicking on it</p>
+  </footer>
+</body>
 
-      <div class="block is-flex is-justify-content-center">
-        <button
-          id="clearRecentMeetings"
-          class="button is-danger is-small has-text-weight-bold"
-          type="button"
-        >
-          Clear Meeting History
-        </button>
-      </div>
-    </main>
-
-    <footer class="has-background-info-light px-4 py-1">
-      <p class="is-size-8">* change the meeting title by clicking on it</p>
-    </footer>
-  </body>
 </html>

@@ -71,9 +71,9 @@ class Meeting {
   getExistingMeeting(id: string): Promise<MeetingDetails> {
     console.log('Checking for existing meeting with ID: ', id);
     return new Promise(resolve => {
-      chrome.storage.sync.get('recentMeetings', function (data) {
-        const recentMeetings = data.recentMeetings || [];
-        const meeting = recentMeetings.find(
+      chrome.storage.sync.get('allMeetings', function (data) {
+        const allMeetings = data.allMeetings || [];
+        const meeting = allMeetings.find(
           (meeting: MeetingDetails) => meeting.id === id
         );
 

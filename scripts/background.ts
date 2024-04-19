@@ -4,37 +4,35 @@
 import { MEETING_STATUS, MeetingDetails } from '../types';
 
 chrome.runtime.onInstalled.addListener(async function () {
-  const recentMeetings = await getRecentMeetings();
-  setBadgeText(recentMeetings);
+  const allMeetings = await getMeetings();
+  setBadgeText(allMeetings);
 });
 
-// Listen for a new meeting and add it to recentMeetings
+// Listen for a new meeting and add it to allMeetings
 chrome.runtime.onMessage.addListener(async function (request) {
   // save meeting
   if (request.action === 'saveMeeting') {
-    const recentMeetings = await saveMeeting(request.meeting);
-    setBadgeText(recentMeetings);
+    const allMeetings = await saveMeeting(request.meeting);
+    setBadgeText(allMeetings);
   }
 
   // update title
   if (request.action === 'updateTitle') {
-    const recentMeetings = await getRecentMeetings();
+    const allMeetings = await getMeetings();
 
     // find the meeting to update
-    const meetingToUpdate = recentMeetings.find(
-      m => m.id === request.meetingId
-    );
+    const meetingToUpdate = allMeetings.find(m => m.id === request.meetingId);
 
     if (meetingToUpdate) {
       console.log(
         `Updating title for meeting: ${meetingToUpdate.id} to ${request.newTitle}`
       );
-      const index = recentMeetings.indexOf(meetingToUpdate);
+      const index = allMeetings.indexOf(meetingToUpdate);
       const updatedMeeting = { ...meetingToUpdate, title: request.newTitle };
 
-      recentMeetings[index] = updatedMeeting;
+      allMeetings[index] = updatedMeeting;
 
-      setRecentMeetings(recentMeetings);
+      setMeetings(allMeetings);
     }
   }
 });
@@ -42,45 +40,45 @@ chrome.runtime.onMessage.addListener(async function (request) {
 async function saveMeeting(
   newMeeting: MeetingDetails
 ): Promise<MeetingDetails[]> {
-  const recentMeetings = await getRecentMeetings();
+  const allMeetings = await getMeetings();
 
   // check if the meeting is already in the list
-  const existingMeeting = recentMeetings.find(m => m.id === newMeeting.id);
+  const existingMeeting = allMeetings.find(m => m.id === newMeeting.id);
 
   if (existingMeeting) {
-    const index = recentMeetings.indexOf(existingMeeting);
+    const index = allMeetings.indexOf(existingMeeting);
 
     // update the existing meeting
-    recentMeetings[index] = newMeeting;
+    allMeetings[index] = newMeeting;
 
     // always use the title from the existing meeting
-    recentMeetings[index].title = existingMeeting.title;
+    allMeetings[index].title = existingMeeting.title;
   } else {
     // add the new meeting
-    recentMeetings.push(newMeeting);
+    allMeetings.push(newMeeting);
   }
 
-  setRecentMeetings(recentMeetings);
+  setMeetings(allMeetings);
 
-  return recentMeetings;
+  return allMeetings;
 }
 
-function getRecentMeetings(): Promise<MeetingDetails[]> {
+function getMeetings(): Promise<MeetingDetails[]> {
   return new Promise(resolve => {
-    chrome.storage.sync.get('recentMeetings', function (data) {
-      const recentMeetings = data.recentMeetings || [];
+    chrome.storage.sync.get('allMeetings', function (data) {
+      const allMeetings = data.allMeetings || [];
 
-      resolve(recentMeetings);
+      resolve(allMeetings);
     });
   });
 }
 
-function setRecentMeetings(recentMeetings: MeetingDetails[]): void {
-  chrome.storage.sync.set({ recentMeetings: recentMeetings });
+function setMeetings(allMeetings: MeetingDetails[]): void {
+  chrome.storage.sync.set({ allMeetings: allMeetings });
 }
 
-function setBadgeText(recentMeetings: MeetingDetails[]): void {
-  const meetingIsInProgress = recentMeetings.some(
+function setBadgeText(allMeetings: MeetingDetails[]): void {
+  const meetingIsInProgress = allMeetings.some(
     m => m.status === MEETING_STATUS.IN_PROGRESS
   );
 
@@ -89,7 +87,7 @@ function setBadgeText(recentMeetings: MeetingDetails[]): void {
     return;
   }
 
-  const completedMeetings = recentMeetings.filter(
+  const completedMeetings = allMeetings.filter(
     m => m.status === MEETING_STATUS.COMPLETED
   );
 

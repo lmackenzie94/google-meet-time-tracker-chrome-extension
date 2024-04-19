@@ -9,12 +9,13 @@
   })(MEETING_STATUS || (MEETING_STATUS = {}));
 
   document.addEventListener('DOMContentLoaded', function () {
-      // Load recent meetings from storage
       refreshMeetings();
-      // Add event listener to clear recent meetings button
-      const clearButton = document.getElementById('clearRecentMeetings');
-      clearButton === null || clearButton === void 0 ? void 0 : clearButton.addEventListener('click', clearRecentMeetings);
+      initClearButton();
   });
+  function initClearButton() {
+      const clearButton = document.getElementById('clearCompletedMeetings');
+      clearButton === null || clearButton === void 0 ? void 0 : clearButton.addEventListener('click', clearCompletedMeetings);
+  }
   function displayMeetingsInProgress(meetings) {
       // clear the list
       const meetingsInProgressList = document.getElementById('meetingsInProgress');
@@ -30,8 +31,15 @@
       const container = document.createElement('div');
       const ul = document.createElement('ul');
       meetingsInProgress.forEach(meeting => {
-          const li = document.createElement('li');
-          li.innerHTML = `
+          const li = createMeetingInProgressElement(meeting);
+          ul.appendChild(li);
+      });
+      container.appendChild(ul);
+      meetingsInProgressList.appendChild(container);
+  }
+  function createMeetingInProgressElement(meeting) {
+      const li = document.createElement('li');
+      li.innerHTML = `
     <div class="is-flex is-justify-content-space-between is-align-items-center has-background-danger-light px-4 py-2 is-size-7">
       <div class="">
         <p id="meeting-title" data-meeting-id="${meeting.id}" class="has-text-weight-bold">${meeting.title}</p>
@@ -41,51 +49,63 @@
     </div>
    
     `;
-          ul.appendChild(li);
-      });
-      container.appendChild(ul);
-      meetingsInProgressList.appendChild(container);
+      return li;
   }
-  function displayRecentMeetings(meetings) {
+  function displayCompletedMeetings(meetings) {
       // clear the list
-      const recentMeetingsList = document.getElementById('recentMeetings');
-      if (!recentMeetingsList) {
-          console.error('Recent meetings list not found');
+      const completedMeetingsList = document.getElementById('completedMeetings');
+      if (!completedMeetingsList) {
+          console.error('Completed meetings list not found');
           return;
       }
-      recentMeetingsList.innerHTML = '';
+      completedMeetingsList.innerHTML = '';
       // filter the meetings that are completed
       const meetingsCompleted = meetings.filter(meeting => meeting.status === MEETING_STATUS.COMPLETED);
       if (meetingsCompleted.length === 0) {
-          const container = document.createElement('div');
-          container.classList.add('has-background-light', 'p-2');
-          const p = document.createElement('p');
-          p.textContent = 'No recent meetings';
-          p.classList.add('is-size-7', 'has-text-grey');
-          container.appendChild(p);
-          recentMeetingsList.appendChild(container);
+          const noCompletedMeetingsElement = createNoCompletedMeetingsElement();
+          completedMeetingsList.appendChild(noCompletedMeetingsElement);
           return;
       }
       const meetingsByDate = groupMeetingsByDate(meetingsCompleted);
       let index = 0;
       for (const date in meetingsByDate) {
-          // Date header
-          const dateHeader = document.createElement('p');
-          dateHeader.textContent = date;
-          dateHeader.classList.add('has-text-weight-bold', 'mb-1', 'is-size-7', 'has-text-link', index === 0 ? 'mt-0' : 'mt-4');
+          const dateHeader = createDateHeader(date, index);
           index++;
-          recentMeetingsList.appendChild(dateHeader);
+          completedMeetingsList.appendChild(dateHeader);
           // Meetings
           const meetings = meetingsByDate[date];
           const container = document.createElement('div');
           const ul = document.createElement('ul');
           meetings.forEach(meeting => {
-              const li = document.createElement('li');
-              const formattedDuration = formatMeetingDuration(meeting.duration);
-              const meetingTime = meeting.startTime !== meeting.endTime
-                  ? `${meeting.startTime} - ${meeting.endTime}`
-                  : meeting.startTime;
-              li.innerHTML = `
+              const li = createMeetingCompletedElement(meeting);
+              ul.appendChild(li);
+          });
+          container.appendChild(ul);
+          completedMeetingsList.appendChild(container);
+      }
+  }
+  function createNoCompletedMeetingsElement() {
+      const container = document.createElement('div');
+      container.classList.add('has-background-light', 'p-2');
+      const p = document.createElement('p');
+      p.textContent = 'No meeting history found.';
+      p.classList.add('is-size-7', 'has-text-grey');
+      container.appendChild(p);
+      return container;
+  }
+  function createDateHeader(date, index) {
+      const dateHeader = document.createElement('p');
+      dateHeader.textContent = date;
+      dateHeader.classList.add('has-text-weight-bold', 'mb-1', 'is-size-7', 'has-text-link', index === 0 ? 'mt-0' : 'mt-4');
+      return dateHeader;
+  }
+  function createMeetingCompletedElement(meeting) {
+      const li = document.createElement('li');
+      const formattedDuration = formatMeetingDuration(meeting.duration);
+      const meetingTime = meeting.startTime !== meeting.endTime
+          ? `${meeting.startTime} - ${meeting.endTime}`
+          : meeting.startTime;
+      li.innerHTML = `
       <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
         <div>
           <p id="meeting-title" data-meeting-id="${meeting.id}"><strong>${meeting.title}</strong></p>
@@ -95,17 +115,13 @@
         </div>
         <span class="tag is-success ml-2 has-text-weight-semibold">${formattedDuration}</span>
       </div>`;
-              ul.appendChild(li);
-          });
-          container.appendChild(ul);
-          recentMeetingsList.appendChild(container);
-      }
+      return li;
   }
   function refreshMeetings() {
-      chrome.storage.sync.get('recentMeetings', function (data) {
-          const recentMeetings = data.recentMeetings || [];
-          displayMeetingsInProgress(recentMeetings);
-          displayRecentMeetings(recentMeetings);
+      chrome.storage.sync.get('allMeetings', function (data) {
+          const allMeetings = data.allMeetings || [];
+          displayMeetingsInProgress(allMeetings);
+          displayCompletedMeetings(allMeetings);
           makeTitlesEditable();
       });
   }
@@ -117,22 +133,22 @@
           return acc;
       }, {}); // Add index signature to the type of acc
   }
-  function clearRecentMeetings() {
-      // alert to confirm the user wants to clear the recent meetings
+  function clearCompletedMeetings() {
+      // alert to confirm the user wants to clear their meeting history
       const confirmClear = confirm('Are you sure you want to clear your meeting history? This action cannot be undone.');
       if (!confirmClear) {
           return;
       }
-      chrome.storage.sync.get('recentMeetings', function (data) {
+      chrome.storage.sync.get('allMeetings', function (data) {
           var _a;
-          if (((_a = data === null || data === void 0 ? void 0 : data.recentMeetings) === null || _a === void 0 ? void 0 : _a.length) === 0) {
+          if (((_a = data === null || data === void 0 ? void 0 : data.allMeetings) === null || _a === void 0 ? void 0 : _a.length) === 0) {
               console.log('No recent meetings to clear');
               return;
           }
           // get the in-progress meetings (we don't want to clear them)
-          const meetingsInProgress = data.recentMeetings.filter((meeting) => meeting.status === MEETING_STATUS.IN_PROGRESS);
-          // set the recent meetings to only the in progress meetings
-          chrome.storage.sync.set({ recentMeetings: meetingsInProgress });
+          const meetingsInProgress = data.allMeetings.filter((meeting) => meeting.status === MEETING_STATUS.IN_PROGRESS);
+          // set the meetings to only the in-progress meetings
+          chrome.storage.sync.set({ allMeetings: meetingsInProgress });
           // remove badge
           chrome.action.setBadgeText({ text: '' });
           refreshMeetings();

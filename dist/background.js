@@ -41,71 +41,71 @@
     // import { MEETING_STATUS } from '../types';
     chrome.runtime.onInstalled.addListener(function () {
         return __awaiter(this, void 0, void 0, function* () {
-            const recentMeetings = yield getRecentMeetings();
-            setBadgeText(recentMeetings);
+            const allMeetings = yield getMeetings();
+            setBadgeText(allMeetings);
         });
     });
-    // Listen for a new meeting and add it to recentMeetings
+    // Listen for a new meeting and add it to allMeetings
     chrome.runtime.onMessage.addListener(function (request) {
         return __awaiter(this, void 0, void 0, function* () {
             // save meeting
             if (request.action === 'saveMeeting') {
-                const recentMeetings = yield saveMeeting(request.meeting);
-                setBadgeText(recentMeetings);
+                const allMeetings = yield saveMeeting(request.meeting);
+                setBadgeText(allMeetings);
             }
             // update title
             if (request.action === 'updateTitle') {
-                const recentMeetings = yield getRecentMeetings();
+                const allMeetings = yield getMeetings();
                 // find the meeting to update
-                const meetingToUpdate = recentMeetings.find(m => m.id === request.meetingId);
+                const meetingToUpdate = allMeetings.find(m => m.id === request.meetingId);
                 if (meetingToUpdate) {
                     console.log(`Updating title for meeting: ${meetingToUpdate.id} to ${request.newTitle}`);
-                    const index = recentMeetings.indexOf(meetingToUpdate);
+                    const index = allMeetings.indexOf(meetingToUpdate);
                     const updatedMeeting = Object.assign(Object.assign({}, meetingToUpdate), { title: request.newTitle });
-                    recentMeetings[index] = updatedMeeting;
-                    setRecentMeetings(recentMeetings);
+                    allMeetings[index] = updatedMeeting;
+                    setMeetings(allMeetings);
                 }
             }
         });
     });
     function saveMeeting(newMeeting) {
         return __awaiter(this, void 0, void 0, function* () {
-            const recentMeetings = yield getRecentMeetings();
+            const allMeetings = yield getMeetings();
             // check if the meeting is already in the list
-            const existingMeeting = recentMeetings.find(m => m.id === newMeeting.id);
+            const existingMeeting = allMeetings.find(m => m.id === newMeeting.id);
             if (existingMeeting) {
-                const index = recentMeetings.indexOf(existingMeeting);
+                const index = allMeetings.indexOf(existingMeeting);
                 // update the existing meeting
-                recentMeetings[index] = newMeeting;
+                allMeetings[index] = newMeeting;
                 // always use the title from the existing meeting
-                recentMeetings[index].title = existingMeeting.title;
+                allMeetings[index].title = existingMeeting.title;
             }
             else {
                 // add the new meeting
-                recentMeetings.push(newMeeting);
+                allMeetings.push(newMeeting);
             }
-            setRecentMeetings(recentMeetings);
-            return recentMeetings;
+            setMeetings(allMeetings);
+            return allMeetings;
         });
     }
-    function getRecentMeetings() {
+    function getMeetings() {
         return new Promise(resolve => {
-            chrome.storage.sync.get('recentMeetings', function (data) {
-                const recentMeetings = data.recentMeetings || [];
-                resolve(recentMeetings);
+            chrome.storage.sync.get('allMeetings', function (data) {
+                const allMeetings = data.allMeetings || [];
+                resolve(allMeetings);
             });
         });
     }
-    function setRecentMeetings(recentMeetings) {
-        chrome.storage.sync.set({ recentMeetings: recentMeetings });
+    function setMeetings(allMeetings) {
+        chrome.storage.sync.set({ allMeetings: allMeetings });
     }
-    function setBadgeText(recentMeetings) {
-        const meetingIsInProgress = recentMeetings.some(m => m.status === MEETING_STATUS.IN_PROGRESS);
+    function setBadgeText(allMeetings) {
+        const meetingIsInProgress = allMeetings.some(m => m.status === MEETING_STATUS.IN_PROGRESS);
         if (meetingIsInProgress) {
             chrome.action.setBadgeText({ text: '🔴' });
             return;
         }
-        const completedMeetings = recentMeetings.filter(m => m.status === MEETING_STATUS.COMPLETED);
+        const completedMeetings = allMeetings.filter(m => m.status === MEETING_STATUS.COMPLETED);
         if (completedMeetings.length) {
             chrome.action.setBadgeText({
                 text: completedMeetings.length.toString()

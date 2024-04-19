@@ -1,12 +1,12 @@
 @font-face {
   font-family: 'Product Sans';
-  src: url('./fonts/Product Sans Regular.ttf') format('truetype');
+  src: url('../fonts/Product Sans Regular.ttf') format('truetype');
   font-weight: normal;
 }
 
 @font-face {
   font-family: 'Product Sans';
-  src: url('./fonts/Product Sans Bold.ttf') format('truetype');
+  src: url('../fonts/Product Sans Bold.ttf') format('truetype');
   font-weight: bold;
 }
 
