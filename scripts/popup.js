@@ -26,7 +26,7 @@ function displayMeetingsInProgress(meetings) {
     li.innerHTML = `
     <div class="is-flex is-justify-content-space-between is-align-items-center has-background-danger-light px-4 py-2 is-size-7">
       <div class="">
-        <p class="has-text-weight-bold">${meeting.title}</p>
+        <p id="meeting-title" data-meeting-id="${meeting.id}" class="has-text-weight-bold">${meeting.title}</p>
         <p class="is-size-8">Joined at ${meeting.startTime}</p>
       </div>
       <span class="tag is-danger is-text-white ml-2 is-uppercase tag-small has-text-weight-semibold animate-pulse">In Progress</span>
@@ -99,7 +99,7 @@ function displayRecentMeetings(meetings) {
       li.innerHTML = `
       <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
         <div>
-          <p><strong>${meeting.title}</strong></p>
+          <p id="meeting-title" data-meeting-id="${meeting.id}"><strong>${meeting.title}</strong></p>
           <p class="is-size-8 has-text-grey">
             ${meetingTime}
           </p>
@@ -121,6 +121,7 @@ function refreshMeetings() {
 
     displayMeetingsInProgress(recentMeetings);
     displayRecentMeetings(recentMeetings);
+    makeTitlesEditable();
   });
 }
 
@@ -144,7 +145,7 @@ function clearRecentMeetings() {
   }
 
   chrome.storage.sync.get('recentMeetings', function (data) {
-    if (data.recentMeetings.length === 0) {
+    if (data?.recentMeetings?.length === 0) {
       console.log('No recent meetings to clear');
       return;
     }
@@ -181,4 +182,55 @@ function formatMeetingDuration(durationInSeconds) {
 
   // seconds
   return `${durationInSeconds}s`;
+}
+
+function makeTitlesEditable() {
+  console.log('Making titles editable...');
+  const titles = document.querySelectorAll('#meeting-title');
+
+  titles.forEach(title => {
+    const currentTitle = title.textContent;
+
+    title.addEventListener('click', () => {
+      title.setAttribute('contenteditable', true);
+      title.focus();
+    });
+
+    title.addEventListener('blur', () => {
+      title.setAttribute('contenteditable', false);
+      title.focus();
+
+      const newTitle = title.textContent;
+      const meetingId = title.dataset.meetingId;
+
+      if (newTitle === currentTitle) {
+        console.log('Title not changed');
+        return;
+      }
+
+      saveTitle(newTitle, meetingId);
+    });
+  });
+}
+
+function saveTitle(newTitle, meetingId) {
+  if (!newTitle.trim() || !meetingId) {
+    console.error('Invalid title or meeting ID');
+    return;
+  }
+
+  chrome.storage.sync.get('recentMeetings', function (data) {
+    const recentMeetings = data.recentMeetings || [];
+
+    const updatedMeetings = recentMeetings.map(meeting => {
+      if (meeting.id === meetingId) {
+        meeting.title = newTitle;
+      }
+      return meeting;
+    });
+
+    chrome.storage.sync.set({ recentMeetings: updatedMeetings });
+
+    console.log(`Updated title for meeting ID ${meetingId}: ${newTitle}`);
+  });
 }

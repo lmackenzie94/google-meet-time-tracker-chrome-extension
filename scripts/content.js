@@ -54,13 +54,16 @@ class Meeting {
   // checks if user is re-joining the same meeting
   getExistingMeeting(id) {
     console.log('Checking for existing meeting with ID: ', id);
+    return this.getMeeting(id);
+  }
 
+  getMeeting(id) {
     return new Promise(resolve => {
       chrome.storage.sync.get('recentMeetings', function (data) {
         const recentMeetings = data.recentMeetings || [];
-        const existingMeeting = recentMeetings.find(m => m.id === id);
+        const meeting = recentMeetings.find(m => m.id === id);
 
-        resolve(existingMeeting);
+        resolve(meeting);
       });
     });
   }
@@ -137,6 +140,11 @@ class Meeting {
   }
 
   getMeetingTitle() {
+    if (this.meetingInfo.title) {
+      console.log('Meeting title already exists: ', this.meetingInfo.title);
+      return Promise.resolve(this.meetingInfo.title);
+    }
+
     const meetingTitleDiv = document.querySelector('div[data-meeting-title]');
 
     return new Promise((resolve, reject) => {
@@ -181,7 +189,7 @@ class Meeting {
     this.waitForMeetingEnd();
   }
 
-  end() {
+  async end() {
     this.timer.stop();
     this.meetingInfo.endTime = this.timer.endTimeFormatted;
 
@@ -192,6 +200,18 @@ class Meeting {
       this.meetingInfo.duration = duration;
     } else {
       this.meetingInfo.duration += duration;
+    }
+
+    // check if user changed the meeting title
+    const savedMeetingInfo = await this.getMeeting(this.meetingInfo.id);
+
+    if (savedMeetingInfo && savedMeetingInfo.title !== this.meetingInfo.title) {
+      console.log(
+        'Title changed: ',
+        savedMeetingInfo.title,
+        this.meetingInfo.title
+      );
+      this.meetingInfo.title = savedMeetingInfo.title;
     }
 
     this.meetingInfo.status = MEETING_STATUS.COMPLETED;
