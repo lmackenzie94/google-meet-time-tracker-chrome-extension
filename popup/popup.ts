@@ -1,15 +1,16 @@
 import { MEETING_STATUS, MeetingDetails } from '../types';
 
 document.addEventListener('DOMContentLoaded', function () {
-  // Load recent meetings from storage
   refreshMeetings();
+  initClearButton();
+});
 
-  // Add event listener to clear recent meetings button
+function initClearButton(): void {
   const clearButton = document.getElementById(
     'clearRecentMeetings'
   ) as HTMLButtonElement;
   clearButton?.addEventListener('click', clearRecentMeetings);
-});
+}
 
 function displayMeetingsInProgress(meetings: MeetingDetails[]): void {
   // clear the list
