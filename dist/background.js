@@ -100,9 +100,10 @@
         chrome.storage.sync.set({ allMeetings: allMeetings });
     }
     function setBadgeText(allMeetings) {
-        const meetingIsInProgress = allMeetings.some(m => m.status === MEETING_STATUS.IN_PROGRESS);
-        if (meetingIsInProgress) {
-            chrome.action.setBadgeText({ text: '🔴' });
+        const meetingsInProgress = allMeetings.filter(m => m.status === MEETING_STATUS.IN_PROGRESS);
+        if (meetingsInProgress.length) {
+            chrome.action.setBadgeText({ text: meetingsInProgress.length.toString() });
+            chrome.action.setBadgeBackgroundColor({ color: '#f14668' });
             return;
         }
         const completedMeetings = allMeetings.filter(m => m.status === MEETING_STATUS.COMPLETED);
@@ -110,6 +111,7 @@
             chrome.action.setBadgeText({
                 text: completedMeetings.length.toString()
             });
+            chrome.action.setBadgeBackgroundColor({ color: '#48c78e' });
         }
         else {
             // remove the badge if there are no completed meetings

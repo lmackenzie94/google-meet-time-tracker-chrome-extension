@@ -100,6 +100,15 @@ function displayCompletedMeetings(meetings: MeetingDetails[]): void {
     container.appendChild(ul);
     completedMeetingsList.appendChild(container);
   }
+
+  showActionButtons();
+  setupExportLink();
+}
+
+function showActionButtons(): void {
+  const actionButtons = document.getElementById('action-buttons');
+  actionButtons?.classList.add('is-flex');
+  actionButtons?.classList.remove('is-hidden');
 }
 
 function createNoCompletedMeetingsElement(): HTMLElement {
@@ -157,7 +166,6 @@ function refreshMeetings(): void {
     displayMeetingsInProgress(allMeetings);
     displayCompletedMeetings(allMeetings);
     makeTitlesEditable();
-    setupExportLink();
   });
 }
 
@@ -270,6 +278,11 @@ function setupExportLink(): void {
     const meetingsCompleted: MeetingDetails[] = allMeetings.filter(
       (meeting: MeetingDetails) => meeting.status === MEETING_STATUS.COMPLETED
     );
+
+    if (meetingsCompleted.length === 0) {
+      console.log('No completed meetings to export');
+      return;
+    }
 
     const formattedMeetings = meetingsCompleted.map(meeting => {
       return {
