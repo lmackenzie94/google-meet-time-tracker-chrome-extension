@@ -4,6 +4,7 @@
   "description": "Track the duration of Google Meet video calls. <br>",
   "main": "index.js",
   "scripts": {
+    "dev": "rollup -c -w",
     "build": "rollup -c"
   },
   "keywords": [],

@@ -123,6 +123,7 @@
           displayMeetingsInProgress(allMeetings);
           displayCompletedMeetings(allMeetings);
           makeTitlesEditable();
+          setupExportLink();
       });
   }
   function groupMeetingsByDate(meetings) {
@@ -200,6 +201,38 @@
           return;
       }
       chrome.runtime.sendMessage({ action: 'updateTitle', meetingId, newTitle });
+  }
+  function setupExportLink() {
+      chrome.storage.sync.get('allMeetings', function (data) {
+          const allMeetings = data.allMeetings || [];
+          const meetingsCompleted = allMeetings.filter((meeting) => meeting.status === MEETING_STATUS.COMPLETED);
+          const formattedMeetings = meetingsCompleted.map(meeting => {
+              return {
+                  Title: meeting.title,
+                  Date: meeting.date,
+                  StartTime: meeting.startTime,
+                  EndTime: meeting.endTime,
+                  Duration: formatMeetingDuration(meeting.duration)
+              };
+          });
+          console.log('Formatted meetings:', formattedMeetings);
+          const csv = convertArrayOfObjectsToCSV(formattedMeetings);
+          const downloadLink = document.getElementById('exportMeetingHistory');
+          downloadLink.href = csv;
+          downloadLink.download = 'meeting-history.csv';
+      });
+  }
+  function convertArrayOfObjectsToCSV(data) {
+      const columns = Object.keys(data[0]);
+      let csv = columns.join(',') + '\n';
+      csv += data
+          .map(row => {
+          // remove the comma from the date
+          row.Date = row.Date.replace(',', '');
+          return columns.map(col => row[col]).join(',');
+      })
+          .join('\n');
+      return 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
   }
 
 })();
