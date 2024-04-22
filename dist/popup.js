@@ -83,8 +83,6 @@
           container.appendChild(ul);
           completedMeetingsList.appendChild(container);
       }
-      showActionButtons();
-      setupExportLink();
   }
   function showActionButtons() {
       const actionButtons = document.getElementById('action-buttons');
@@ -130,7 +128,28 @@
           displayMeetingsInProgress(allMeetings);
           displayCompletedMeetings(allMeetings);
           makeTitlesEditable();
+          updateUI();
       });
+  }
+  function updateUI() {
+      chrome.storage.sync.get('allMeetings', function (data) {
+          const allMeetings = data.allMeetings || [];
+          const hasCompletedMeetings = allMeetings.some(meeting => meeting.status === MEETING_STATUS.COMPLETED);
+          const hasMeetingsInProgress = allMeetings.some(meeting => meeting.status === MEETING_STATUS.IN_PROGRESS);
+          // show footer if there are completed meetings OR meetings in progress
+          if (hasCompletedMeetings || hasMeetingsInProgress) {
+              showFooter();
+          }
+          // show Clear and Export buttons if there are completed meetings
+          if (hasCompletedMeetings) {
+              showActionButtons();
+              setupExportLink();
+          }
+      });
+  }
+  function showFooter() {
+      const footer = document.querySelector('footer');
+      footer === null || footer === void 0 ? void 0 : footer.classList.remove('is-hidden');
   }
   function groupMeetingsByDate(meetings) {
       return meetings.reduce((acc, meeting) => {

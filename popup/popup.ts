@@ -100,9 +100,6 @@ function displayCompletedMeetings(meetings: MeetingDetails[]): void {
     container.appendChild(ul);
     completedMeetingsList.appendChild(container);
   }
-
-  showActionButtons();
-  setupExportLink();
 }
 
 function showActionButtons(): void {
@@ -166,7 +163,38 @@ function refreshMeetings(): void {
     displayMeetingsInProgress(allMeetings);
     displayCompletedMeetings(allMeetings);
     makeTitlesEditable();
+    updateUI();
   });
+}
+
+function updateUI(): void {
+  chrome.storage.sync.get('allMeetings', function (data) {
+    const allMeetings: MeetingDetails[] = data.allMeetings || [];
+
+    const hasCompletedMeetings = allMeetings.some(
+      meeting => meeting.status === MEETING_STATUS.COMPLETED
+    );
+
+    const hasMeetingsInProgress = allMeetings.some(
+      meeting => meeting.status === MEETING_STATUS.IN_PROGRESS
+    );
+
+    // show footer if there are completed meetings OR meetings in progress
+    if (hasCompletedMeetings || hasMeetingsInProgress) {
+      showFooter();
+    }
+
+    // show Clear and Export buttons if there are completed meetings
+    if (hasCompletedMeetings) {
+      showActionButtons();
+      setupExportLink();
+    }
+  });
+}
+
+function showFooter(): void {
+  const footer = document.querySelector('footer');
+  footer?.classList.remove('is-hidden');
 }
 
 function groupMeetingsByDate(meetings: MeetingDetails[]) {
