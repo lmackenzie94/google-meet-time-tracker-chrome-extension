@@ -42,12 +42,17 @@ function displayMeetingsInProgress(meetings: MeetingDetails[]): void {
 }
 
 function createMeetingInProgressElement(meeting: MeetingDetails): HTMLElement {
+  const currentDuration = getCurrentMeetingDuration(meeting.startTime);
   const li = document.createElement('li');
   li.innerHTML = `
     <div class="is-flex is-justify-content-space-between is-align-items-center has-background-danger-light px-4 py-2 is-size-7">
       <div class="">
-        <p id="meeting-title" data-meeting-id="${meeting.id}" class="has-text-weight-bold">${meeting.title}</p>
-        <p class="is-size-8">Joined at ${meeting.startTime}</p>
+        <p id="meeting-title" data-meeting-id="${
+          meeting.id
+        }" class="has-text-weight-bold">${meeting.title}</p>
+        <p class="is-size-8">Joined at ${
+          meeting.startTimeFormatted
+        } (<strong>${formatMeetingDuration(currentDuration)}</strong> ago)</p>
       </div>
       <span class="tag is-danger is-text-white ml-2 is-uppercase tag-small has-text-weight-semibold animate-pulse">In Progress</span>
     </div>
@@ -138,9 +143,9 @@ function createMeetingCompletedElement(meeting: MeetingDetails): HTMLElement {
   const formattedDuration = formatMeetingDuration(meeting.duration);
 
   const meetingTime =
-    meeting.startTime !== meeting.endTime
-      ? `${meeting.startTime} - ${meeting.endTime}`
-      : meeting.startTime;
+    meeting.startTimeFormatted !== meeting.endTimeFormatted
+      ? `${meeting.startTimeFormatted} - ${meeting.endTimeFormatted}`
+      : meeting.startTimeFormatted;
 
   li.innerHTML = `
       <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
@@ -236,6 +241,10 @@ function clearCompletedMeetings(): void {
     refreshMeetings();
   });
 }
+function getCurrentMeetingDuration(startTime: number): number {
+  const currentTime = new Date().getTime();
+  return Math.floor((currentTime - startTime) / 1000);
+}
 
 function formatMeetingDuration(durationInSeconds: number): string {
   // hours
@@ -316,8 +325,8 @@ function setupExportLink(): void {
       return {
         Title: meeting.title,
         Date: meeting.date,
-        StartTime: meeting.startTime,
-        EndTime: meeting.endTime,
+        StartTime: meeting.startTimeFormatted,
+        EndTime: meeting.endTimeFormatted,
         Duration: formatMeetingDuration(meeting.duration)
       };
     });

@@ -9,8 +9,10 @@ export type MeetingDetails = {
   id: string;
   title: string;
   date: string;
-  startTime: string;
-  endTime: string;
+  startTime: number;
+  startTimeFormatted: string;
+  endTime: number;
+  endTimeFormatted: string;
   duration: number;
   status: MEETING_STATUS;
 };

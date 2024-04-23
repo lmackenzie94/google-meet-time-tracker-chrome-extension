@@ -38,12 +38,13 @@
       meetingsInProgressList.appendChild(container);
   }
   function createMeetingInProgressElement(meeting) {
+      const currentDuration = getCurrentMeetingDuration(meeting.startTime);
       const li = document.createElement('li');
       li.innerHTML = `
     <div class="is-flex is-justify-content-space-between is-align-items-center has-background-danger-light px-4 py-2 is-size-7">
       <div class="">
         <p id="meeting-title" data-meeting-id="${meeting.id}" class="has-text-weight-bold">${meeting.title}</p>
-        <p class="is-size-8">Joined at ${meeting.startTime}</p>
+        <p class="is-size-8">Joined at ${meeting.startTimeFormatted} (<strong>${formatMeetingDuration(currentDuration)}</strong> ago)</p>
       </div>
       <span class="tag is-danger is-text-white ml-2 is-uppercase tag-small has-text-weight-semibold animate-pulse">In Progress</span>
     </div>
@@ -107,9 +108,9 @@
   function createMeetingCompletedElement(meeting) {
       const li = document.createElement('li');
       const formattedDuration = formatMeetingDuration(meeting.duration);
-      const meetingTime = meeting.startTime !== meeting.endTime
-          ? `${meeting.startTime} - ${meeting.endTime}`
-          : meeting.startTime;
+      const meetingTime = meeting.startTimeFormatted !== meeting.endTimeFormatted
+          ? `${meeting.startTimeFormatted} - ${meeting.endTimeFormatted}`
+          : meeting.startTimeFormatted;
       li.innerHTML = `
       <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
         <div>
@@ -180,6 +181,10 @@
           refreshMeetings();
       });
   }
+  function getCurrentMeetingDuration(startTime) {
+      const currentTime = new Date().getTime();
+      return Math.floor((currentTime - startTime) / 1000);
+  }
   function formatMeetingDuration(durationInSeconds) {
       // hours
       if (durationInSeconds >= 3600) {
@@ -239,8 +244,8 @@
               return {
                   Title: meeting.title,
                   Date: meeting.date,
-                  StartTime: meeting.startTime,
-                  EndTime: meeting.endTime,
+                  StartTime: meeting.startTimeFormatted,
+                  EndTime: meeting.endTimeFormatted,
                   Duration: formatMeetingDuration(meeting.duration)
               };
           });

@@ -22,8 +22,10 @@ class Meeting {
     date: '',
     title: '',
     status: MEETING_STATUS.IN_PROGRESS,
-    startTime: '',
-    endTime: '',
+    startTime: 0,
+    startTimeFormatted: '',
+    endTime: 0,
+    endTimeFormatted: '',
     duration: 0
   };
 
@@ -215,7 +217,8 @@ class Meeting {
 
     // if the meeting is re-joined, use the initial start time
     if (!this.meetingDetails.startTime) {
-      this.meetingDetails.startTime = this.timer.startTimeFormatted;
+      this.meetingDetails.startTime = this.timer.startTime;
+      this.meetingDetails.startTimeFormatted = this.timer.startTimeFormatted;
     }
 
     this.meetingDetails.status = MEETING_STATUS.IN_PROGRESS;
@@ -226,7 +229,9 @@ class Meeting {
 
   async end() {
     this.timer.stop();
-    this.meetingDetails.endTime = this.timer.endTimeFormatted;
+
+    this.meetingDetails.endTime = this.timer.endTime;
+    this.meetingDetails.endTimeFormatted = this.timer.endTimeFormatted;
 
     const duration = this.timer.getDurationInSeconds();
 

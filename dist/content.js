@@ -59,8 +59,10 @@
                 date: '',
                 title: '',
                 status: MEETING_STATUS.IN_PROGRESS,
-                startTime: '',
-                endTime: '',
+                startTime: 0,
+                startTimeFormatted: '',
+                endTime: 0,
+                endTimeFormatted: '',
                 duration: 0
             };
             this.meetingDetails.id = this.getID();
@@ -222,7 +224,8 @@
                 this.timer.start();
                 // if the meeting is re-joined, use the initial start time
                 if (!this.meetingDetails.startTime) {
-                    this.meetingDetails.startTime = this.timer.startTimeFormatted;
+                    this.meetingDetails.startTime = this.timer.startTime;
+                    this.meetingDetails.startTimeFormatted = this.timer.startTimeFormatted;
                 }
                 this.meetingDetails.status = MEETING_STATUS.IN_PROGRESS;
                 this.meetingDetails.title = yield this.getMeetingTitle();
@@ -233,7 +236,8 @@
         end() {
             return __awaiter(this, void 0, void 0, function* () {
                 this.timer.stop();
-                this.meetingDetails.endTime = this.timer.endTimeFormatted;
+                this.meetingDetails.endTime = this.timer.endTime;
+                this.meetingDetails.endTimeFormatted = this.timer.endTimeFormatted;
                 const duration = this.timer.getDurationInSeconds();
                 // if re-joining the same meeting, add the new duration to the existing duration
                 if (!this.meetingDetails.duration) {
