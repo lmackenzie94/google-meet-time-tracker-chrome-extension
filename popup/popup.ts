@@ -5,6 +5,17 @@ document.addEventListener('DOMContentLoaded', function () {
   initClearButton();
 });
 
+function refreshMeetings(): void {
+  chrome.storage.sync.get('allMeetings', function (data) {
+    const allMeetings = data.allMeetings || [];
+
+    displayMeetingsInProgress(allMeetings);
+    displayCompletedMeetings(allMeetings);
+    makeTitlesEditable();
+    updateUI();
+  });
+}
+
 function initClearButton(): void {
   const clearButton = document.getElementById(
     'clearCompletedMeetings'
@@ -107,12 +118,6 @@ function displayCompletedMeetings(meetings: MeetingDetails[]): void {
   }
 }
 
-function showActionButtons(): void {
-  const actionButtons = document.getElementById('action-buttons');
-  actionButtons?.classList.add('is-flex');
-  actionButtons?.classList.remove('is-hidden');
-}
-
 function createNoCompletedMeetingsElement(): HTMLElement {
   const container = document.createElement('div');
   container.classList.add('has-background-light', 'p-2');
@@ -161,15 +166,10 @@ function createMeetingCompletedElement(meeting: MeetingDetails): HTMLElement {
   return li;
 }
 
-function refreshMeetings(): void {
-  chrome.storage.sync.get('allMeetings', function (data) {
-    const allMeetings = data.allMeetings || [];
-
-    displayMeetingsInProgress(allMeetings);
-    displayCompletedMeetings(allMeetings);
-    makeTitlesEditable();
-    updateUI();
-  });
+function showActionButtons(): void {
+  const actionButtons = document.getElementById('action-buttons');
+  actionButtons?.classList.add('is-flex');
+  actionButtons?.classList.remove('is-hidden');
 }
 
 function updateUI(): void {

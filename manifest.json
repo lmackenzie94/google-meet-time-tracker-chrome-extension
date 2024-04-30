@@ -3,7 +3,7 @@
   "name": "Google Meet Time Tracker",
   "version": "1.0",
   "description": "Track the duration of Google Meet video calls.",
-  "permissions": ["tabs", "activeTab", "storage"],
+  "permissions": ["storage"],
   "content_scripts": [
     {
       "matches": ["https://meet.google.com/*"],
