@@ -200,8 +200,7 @@
       // minutes
       if (durationInSeconds >= 60) {
           const minutes = Math.floor(durationInSeconds / 60);
-          const seconds = durationInSeconds % 60;
-          return `${minutes}m ${seconds}s`;
+          return `${minutes}m`;
       }
       // seconds
       return `${durationInSeconds}s`;
