@@ -12,6 +12,16 @@
       refreshMeetings();
       initClearButton();
   });
+  function refreshMeetings() {
+      console.log('Refreshing meetings...');
+      chrome.storage.sync.get('allMeetings', function (data) {
+          const allMeetings = data.allMeetings || [];
+          displayMeetingsInProgress(allMeetings);
+          displayCompletedMeetings(allMeetings);
+          makeTitlesEditable();
+          updateUI();
+      });
+  }
   function initClearButton() {
       const clearButton = document.getElementById('clearCompletedMeetings');
       clearButton === null || clearButton === void 0 ? void 0 : clearButton.addEventListener('click', clearCompletedMeetings);
@@ -85,11 +95,6 @@
           completedMeetingsList.appendChild(container);
       }
   }
-  function showActionButtons() {
-      const actionButtons = document.getElementById('action-buttons');
-      actionButtons === null || actionButtons === void 0 ? void 0 : actionButtons.classList.add('is-flex');
-      actionButtons === null || actionButtons === void 0 ? void 0 : actionButtons.classList.remove('is-hidden');
-  }
   function createNoCompletedMeetingsElement() {
       const container = document.createElement('div');
       container.classList.add('has-background-light', 'p-2');
@@ -112,25 +117,24 @@
           ? `${meeting.startTimeFormatted} - ${meeting.endTimeFormatted}`
           : meeting.startTimeFormatted;
       li.innerHTML = `
-      <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px;">
+      <div class="is-flex is-justify-content-space-between is-align-items-center has-background-light px-2 py-1 mb-1 is-size-7" style="border-radius: 4px; position: relative;">
         <div>
           <p id="meeting-title" data-meeting-id="${meeting.id}"><strong>${meeting.title}</strong></p>
           <p class="is-size-8 has-text-grey">
             ${meetingTime}
           </p>
         </div>
-        <span class="tag is-success ml-2 has-text-weight-semibold">${formattedDuration}</span>
+        <div class="is-flex is-justify-content-space-between is-align-items-center" style="margin-right: -15px">
+          <span class="tag is-success mx-2 has-text-weight-semibold">${formattedDuration}</span>
+          <button class="delete is-small" data-meeting-id="${meeting.id}" style="background-color: #ff8181;"></button>
+        </div>
       </div>`;
       return li;
   }
-  function refreshMeetings() {
-      chrome.storage.sync.get('allMeetings', function (data) {
-          const allMeetings = data.allMeetings || [];
-          displayMeetingsInProgress(allMeetings);
-          displayCompletedMeetings(allMeetings);
-          makeTitlesEditable();
-          updateUI();
-      });
+  function showActionButtons() {
+      const actionButtons = document.getElementById('action-buttons');
+      actionButtons === null || actionButtons === void 0 ? void 0 : actionButtons.classList.add('is-flex');
+      actionButtons === null || actionButtons === void 0 ? void 0 : actionButtons.classList.remove('is-hidden');
   }
   function updateUI() {
       chrome.storage.sync.get('allMeetings', function (data) {
@@ -144,6 +148,7 @@
           // show Clear and Export buttons if there are completed meetings
           if (hasCompletedMeetings) {
               showActionButtons();
+              setupDeleteButtons();
               setupExportLink();
           }
       });
@@ -267,6 +272,35 @@
       })
           .join('\n');
       return 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  }
+  function setupDeleteButtons() {
+      const deleteButtons = document.querySelectorAll('.delete');
+      deleteButtons.forEach(button => {
+          button.addEventListener('click', () => {
+              const meetingId = button.dataset.meetingId;
+              if (!meetingId) {
+                  console.error('Invalid meeting ID');
+                  return;
+              }
+              deleteMeeting(meetingId, button);
+          });
+      });
+  }
+  function deleteMeeting(meetingId, button) {
+      const confirmClear = confirm('Are you sure you want to delete this meeting? This action cannot be undone.');
+      if (!confirmClear) {
+          return;
+      }
+      chrome.runtime.sendMessage({ action: 'deleteMeeting', meetingId });
+      const li = button === null || button === void 0 ? void 0 : button.closest('li');
+      if (li) {
+          li.style.opacity = '0.4';
+      }
+      // wait before refreshing to give Chrome time to remove the meeting from storage
+      // TODO: better way to handle this?
+      setTimeout(() => {
+          refreshMeetings();
+      }, 1000);
   }
 
 })();

@@ -53,6 +53,19 @@
                 const allMeetings = yield saveMeeting(request.meeting);
                 setBadgeText(allMeetings);
             }
+            // delete meeting
+            if (request.action === 'deleteMeeting') {
+                const allMeetings = yield getMeetings();
+                // find the meeting to delete
+                const meetingToDelete = allMeetings.find(m => m.id === request.meetingId);
+                if (meetingToDelete) {
+                    console.log(`Deleting meeting: ${meetingToDelete.id}`);
+                    const index = allMeetings.indexOf(meetingToDelete);
+                    allMeetings.splice(index, 1);
+                    setMeetings(allMeetings);
+                    setBadgeText(allMeetings);
+                }
+            }
             // update title
             if (request.action === 'updateTitle') {
                 const allMeetings = yield getMeetings();

@@ -180,14 +180,16 @@ class Meeting {
           console.log('Meeting title found: ', meetingTitle);
           resolve(meetingTitle);
         } else {
-          console.error('Meeting title is null');
-          reject('Meeting title is null');
+          console.error('Meeting title is null. Setting to "Untitled"');
+          resolve('Untitled');
         }
       } else {
         retries++;
         if (retries >= 5) {
-          console.error('Meeting title element not found');
-          reject('Meeting title element not found');
+          console.error(
+            'Meeting title element not found. Setting to "Untitled"'
+          );
+          resolve('Untitled');
         }
 
         console.log('Meeting title element not found. Retrying in 1 second');
