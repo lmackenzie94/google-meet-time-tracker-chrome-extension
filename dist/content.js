@@ -130,9 +130,10 @@
             }
             else {
                 retries++;
-                if (retries >= 5) {
-                    // TODO: do this properly
-                    return 'abc123';
+                if (retries >= 10) {
+                    // just return a random ID
+                    console.error('Meeting ID not found. Generating random ID');
+                    return Math.random().toString(36).substring(2, 15); //
                 }
                 console.log('Meeting ID not found. Retrying in 1 second');
                 setTimeout(() => {
@@ -195,7 +196,7 @@
                 }
                 else {
                     retries++;
-                    if (retries >= 5) {
+                    if (retries >= 10) {
                         console.error('Meeting title element not found. Setting to "Untitled"');
                         resolve('Untitled');
                     }
